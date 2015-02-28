@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ServiceDefinition name="MBraceCloudSevice" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" schemaVersion="2014-06.2.4">
+  <WorkerRole name="MBraceWorkerRole" vmsize="Large">
+    <ConfigurationSettings>
+      <Setting name="StorageConnection" />
+      <Setting name="ServiceBusConnection" />
+    </ConfigurationSettings>
+    <LocalResources>
+      <LocalStorage name="CustomTempLocalStore" cleanOnRoleRecycle="true" sizeInMB="400000" />
+      <LocalStorage name="DiagnosticStore" cleanOnRoleRecycle="false" sizeInMB="20000" />
+    </LocalResources>
+  </WorkerRole>
+</ServiceDefinition>
