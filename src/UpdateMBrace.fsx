@@ -1,6 +1,7 @@
 ﻿#load "Fake.Azure.CloudServices.fsx"
 #load @"..\packages\FSharp.Azure.StorageTypeProvider\StorageTypeProvider.fsx"
 #load "Elastacloud.Brisk.Synchronisation.fsx"
+#r @"..\packages\DotNetZip\lib\net20\Ionic.Zip.dll"
 
 open Paket
 open Fake
@@ -12,24 +13,30 @@ open Elastacloud.Brisk
 
 Environment.CurrentDirectory <- __SOURCE_DIRECTORY__
 let packageOutputDir = @"MBraceCloudService\bin\Release\app.publish"
-[<Literal>]
-let EUNorthStorageName = "briskdepoteun"
-[<Literal>]
-let EUNorthStorageKey = "dPwxkxWGJzaWrxKLRUYOuNqoWHTUf0Xc3KzSSXew9ojTUuiIW+s/owwv0FRBNeGp+i69XL9W5hKsuyuL9TKYiQ=="
+let sourceFolder = (DirectoryInfo __SOURCE_DIRECTORY__).Parent.FullName
+type EUNorthStorage = AzureTypeProvider<"briskdepoteun", "dPwxkxWGJzaWrxKLRUYOuNqoWHTUf0Xc3KzSSXew9ojTUuiIW+s/owwv0FRBNeGp+i69XL9W5hKsuyuL9TKYiQ==">
 
-type Account = AzureTypeProvider<EUNorthStorageName, EUNorthStorageKey>
+Target "Upgrade MBrace" (fun _ ->
+    sourceFolder |> Git.Reset.ResetHard
+    UpdateProcess.UpdatePackage("..\paket.dependencies", Domain.PackageName "MBrace.Azure", None, false, false, false)
+    if sourceFolder |> Git.Information.isCleanWorkingCopy then
+        failwith "No changes have been detected."
+)
+
+Target "Run All" DoNothing
+
 let uploadToAzure (vmSize:string) =
     let file = Path.Combine(packageOutputDir, "MBraceCloudService.cspkg")
     let destination = Path.Combine(packageOutputDir, sprintf "mbrace-%s.cspkg" (vmSize.ToLower()))
     DeleteFile destination
     file |> Rename destination
-    Account.Containers.cspackages.Upload destination |> Async.RunSynchronously
+    EUNorthStorage.Containers.cspackages.Upload destination |> Async.RunSynchronously
 
 let ProcessVmSize vmSize =   
     // modify csdef with correct VM size
     let csdefPath = @"MBraceCloudService\ServiceDefinition.csdef"
     csdefPath
-    |> IO.File.ReadAllText 
+    |> File.ReadAllText 
     |> XMLHelper.XMLDoc
     |> XMLHelper.XPathReplaceNS
         "/svchost:ServiceDefinition/svchost:WorkerRole/@vmsize"
@@ -51,13 +58,12 @@ let ProcessVmSize vmSize =
 
     // upload it to azure
     uploadToAzure vmSize
-
-Target "Run All" id
     
 [ "Medium"; "Large"; "ExtraLarge" ]
-|> List.map(fun vmSize -> 
+|> List.mapi(fun index vmSize -> 
     let target = (sprintf "Process %s" vmSize) 
-    Target target (fun _ -> ProcessVmSize vmSize)
+    Target target (fun _ -> ProcessVmSize vmSize)    
+    if index = 0 then "Upgrade MBrace" ==> target |> ignore
     target)
 |> List.reduce(fun first second -> first ==> second)
 |> fun finalStage -> finalStage ==> "Run All" |> ignore
@@ -70,9 +76,23 @@ Target "Synchronise Depots" (fun _ ->
     |> Array.sortBy fst
     |> Array.iter(fun (res, (src, dest)) -> printfn "%A - %A" res dest))
 
-"Synchronise Depots" ==> "Run All"
+Target "Commit Label and Push" (fun _ ->
+    let newMbraceVersion = (LockFile.LoadFrom "..\paket.lock").ResolvedPackages.[Domain.NormalizedPackageName(Domain.PackageName "Mbrace.Azure")].Version.ToString()
+    Git.Commit.Commit sourceFolder <| sprintf "Update MBrace.Azure %s" newMbraceVersion
+    Git.Branches.push sourceFolder
+    Git.Branches.tag sourceFolder newMbraceVersion
+    Git.Branches.pushTag sourceFolder "origin" newMbraceVersion
+    ()
+)
+
+"Commit Label and Push"
+==> "Synchronise Depots"
+==> "Run All"
+
 // commit, label and push
 
 //TODO: Auto update dependencies here and in other other mbrace repo.
+
+TargetHelper.PrintDependencyGraph false "Run All"
 
 Run "Run All"
