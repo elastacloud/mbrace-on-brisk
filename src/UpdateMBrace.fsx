@@ -89,9 +89,7 @@ Target "Commit Label and Push" (fun _ ->
 ==> "Synchronise Depots"
 ==> "Run All"
 
-// commit, label and push
-
-//TODO: Auto update dependencies here and in other other mbrace repo.
+//TODO: Auto update Azure.MBrace dependency in other other mbrace repo.
 
 TargetHelper.PrintDependencyGraph false "Run All"
 
