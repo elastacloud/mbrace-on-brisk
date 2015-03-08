@@ -9,14 +9,14 @@
     <AzureEnableRemoteDesktop>True</AzureEnableRemoteDesktop>
     <AzureEnableWebDeploy>False</AzureEnableWebDeploy>
     <AzureFallbackToDeleteAndRecreateIfUpgradeFails>False</AzureFallbackToDeleteAndRecreateIfUpgradeFails>
-    <AzureHostedServiceLabel>isaacmbrace</AzureHostedServiceLabel>
+    <AzureHostedServiceLabel>IsaacMBrace</AzureHostedServiceLabel>
     <AzureHostedServiceName>isaacmbrace</AzureHostedServiceName>
     <AzureEnableIntelliTrace>False</AzureEnableIntelliTrace>
     <AzureEnableProfiling>False</AzureEnableProfiling>
     <AzureServiceConfiguration>Cloud</AzureServiceConfiguration>
     <AzureSolutionConfiguration>Release</AzureSolutionConfiguration>
-    <AzureStorageAccountLabel>briskdash</AzureStorageAccountLabel>
-    <AzureStorageAccountName>briskdash</AzureStorageAccountName>
+    <AzureStorageAccountLabel>isaacmbrace</AzureStorageAccountLabel>
+    <AzureStorageAccountName>isaacmbrace</AzureStorageAccountName>
     <AzureAppendTimestampToDeploymentLabel>True</AzureAppendTimestampToDeploymentLabel>
   </PropertyGroup>
 </Project>

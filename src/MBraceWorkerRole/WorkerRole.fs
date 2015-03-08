@@ -1,5 +1,6 @@
 ﻿namespace MBraceWorkerRole
 
+open MBrace.Azure
 open MBrace.Azure.Runtime
 open MBrace.Azure.Runtime.Common
 open Microsoft.WindowsAzure
@@ -13,6 +14,7 @@ type WorkerRole() =
 
     let getSetting = CloudConfigurationManager.GetSetting
     let setEnv key value = Environment.SetEnvironmentVariable(key, value)
+    let maxId = int UInt16.MaxValue
 
     let svc =
         lazy
@@ -24,7 +26,7 @@ type WorkerRole() =
             let svc =
                 Service(config,
                     serviceId = RoleEnvironment.CurrentRoleInstance.Id,
-                    MaxConcurrentJobs = Environment.ProcessorCount)
+                    MaxConcurrentJobs = Environment.ProcessorCount * 8)
 
             svc.AttachLogger(CustomLogger(fun text -> Trace.WriteLine text))
             svc
