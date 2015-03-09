@@ -6,6 +6,7 @@
 open Paket
 open Fake
 open Fake.Azure.CloudServices
+open Fake.Git
 open System
 open System.IO
 open FSharp.Azure.StorageTypeProvider
@@ -25,72 +26,67 @@ Target "Upgrade MBrace" (fun _ ->
 
 Target "Run All" DoNothing
 
-let uploadToAzure (vmSize:string) =
-    let file = Path.Combine(packageOutputDir, "MBraceCloudService.cspkg")
-    let destination = Path.Combine(packageOutputDir, sprintf "mbrace-%s.cspkg" (vmSize.ToLower()))
-    DeleteFile destination
-    file |> Rename destination
-    EUNorthStorage.Containers.cspackages.Upload destination |> Async.RunSynchronously
+let createTargetsFor vmSize =
+    let targetForVm name func =
+        let targetName = (sprintf "%s: %s" vmSize name)
+        let t = Target targetName func
+        targetName
+    [
+        targetForVm "Modify config" (fun _ -> 
+            let csdefPath = @"MBraceCloudService\ServiceDefinition.csdef"
+            csdefPath
+            |> File.ReadAllText 
+            |> XMLHelper.XMLDoc
+            |> XMLHelper.XPathReplaceNS
+                "/svchost:ServiceDefinition/svchost:WorkerRole/@vmsize"
+                vmSize
+                [ "svchost", "http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" ]
+            |> fun doc -> doc.Save csdefPath
+        )
 
-let ProcessVmSize vmSize =   
-    // modify csdef with correct VM size
-    let csdefPath = @"MBraceCloudService\ServiceDefinition.csdef"
-    csdefPath
-    |> File.ReadAllText 
-    |> XMLHelper.XMLDoc
-    |> XMLHelper.XPathReplaceNS
-        "/svchost:ServiceDefinition/svchost:WorkerRole/@vmsize"
-        vmSize
-        [ "svchost", "http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" ]
-    |> fun doc -> doc.Save csdefPath
+        targetForVm "Clean" (fun _ -> CleanDirs [ @"MBraceWorkerRole\bin"; @"MBraceCloudService\bin" ])
 
-    // clean outputs
-    CleanDirs [ @"MBraceWorkerRole\bin"; @"MBraceCloudService\bin" ]
+        targetForVm "Rebuild" (fun _ -> 
+            !!("Elastacloud.Brisk.MBraceOnAzure.sln")
+            |> MSBuildRelease "" "Rebuild"
+            |> ignore)
 
-    // rebuild solution    
-    !!("Elastacloud.Brisk.MBraceOnAzure.sln")
-    |> MSBuildRelease "" "Rebuild"
-    |> ignore
+        targetForVm "Create CS Package" (fun _ -> 
+            // create the cspackage
+            PackageRole { CloudService = "MBraceCloudService"; WorkerRole = "MBraceWorkerRole"; SdkVersion = None; OutputPath = Some @"MBraceCloudService\bin\Release\app.publish" }
+            |> ignore)
 
-    // create the cspackage
-    PackageRole { CloudService = "MBraceCloudService"; WorkerRole = "MBraceWorkerRole"; SdkVersion = None; OutputPath = Some @"MBraceCloudService\bin\Release\app.publish" }
-    |> ignore
+        targetForVm "Upload to Azure" (fun _ -> 
+            let file = Path.Combine(packageOutputDir, "MBraceCloudService.cspkg")
+            let destination = Path.Combine(packageOutputDir, sprintf "mbrace-%s.cspkg" (vmSize.ToLower()))
+            DeleteFile destination
+            file |> Rename destination
+            EUNorthStorage.Containers.cspackages.Upload destination |> Async.RunSynchronously)
+    ]
 
-    // upload it to azure
-    uploadToAzure vmSize
-    
-[ "Medium"; "Large"; "ExtraLarge" ]
-|> List.mapi(fun index vmSize -> 
-    let target = (sprintf "Process %s" vmSize) 
-    Target target (fun _ -> ProcessVmSize vmSize)    
-    if index = 0 then "Upgrade MBrace" ==> target |> ignore
-    target)
-|> List.reduce(fun first second -> first ==> second)
-|> fun finalStage -> finalStage ==> "Run All" |> ignore
+let vmTargets = [ "Medium"; "Large"; "ExtraLarge" ] |> List.collect createTargetsFor
 
 Target "Synchronise Depots" (fun _ ->
     Synchronisation.SyncAllDepots(Synchronisation.BizsparkCert, Synchronisation.SourceDepot, Synchronisation.TargetDepots)
     |> Async.RunSynchronously
-    |> Seq.toArray
-    |> Array.filter(fun (res, _) -> res <> Synchronisation.FileSyncResult.FileAlreadyExists)
-    |> Array.sortBy fst
-    |> Array.iter(fun (res, (src, dest)) -> printfn "%A - %A" res dest))
+    |> Seq.filter(fst >> (<>) Synchronisation.FileSyncResult.FileAlreadyExists)
+    |> Seq.sortBy fst
+    |> Seq.iter(fun (res, (_, dest)) -> printfn "%A - %A" res dest))
 
 Target "Commit Label and Push" (fun _ ->
     let newMbraceVersion = (LockFile.LoadFrom "..\paket.lock").ResolvedPackages.[Domain.NormalizedPackageName(Domain.PackageName "Mbrace.Azure")].Version.ToString()
-    Git.Commit.Commit sourceFolder <| sprintf "Update MBrace.Azure %s" newMbraceVersion
-    Git.Branches.push sourceFolder
-    Git.Branches.tag sourceFolder newMbraceVersion
-    Git.Branches.pushTag sourceFolder "origin" newMbraceVersion
-    ()
+    Commit sourceFolder <| sprintf "Update MBrace.Azure %s" newMbraceVersion
+    push sourceFolder
+    tag sourceFolder newMbraceVersion
+    pushTag sourceFolder "origin" newMbraceVersion
 )
 
-"Commit Label and Push"
+"Upgrade MBrace" ==> vmTargets.Head |> ignore
+vmTargets |> List.reduce (==>)
+==> "Commit Label and Push"
 ==> "Synchronise Depots"
 ==> "Run All"
 
-//TODO: Auto update Azure.MBrace dependency in other other mbrace repo.
-
-TargetHelper.PrintDependencyGraph false "Run All"
+TargetHelper.PrintDependencyGraph true "Run All"
 
 Run "Run All"
