@@ -2,7 +2,7 @@ NUGET
   remote: https://nuget.org/api/v2
   specs:
     DotNetZip (1.9.3)
-    FAKE (3.18.0)
+    FAKE (3.19.1)
     FSharp.Azure.StorageTypeProvider (1.1.0)
     FSharp.Core (3.1.2.1)
     FsPickler (1.0.15)

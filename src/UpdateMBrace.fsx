@@ -1,4 +1,5 @@
-﻿#load "Fake.Azure.CloudServices.fsx"
+﻿#r @"..\packages\Paket.Core\lib\net40\Paket.Core.dll"
+#r @"..\packages\Fake\tools\FakeLib.dll"
 #load @"..\packages\FSharp.Azure.StorageTypeProvider\StorageTypeProvider.fsx"
 #load "Elastacloud.Brisk.Synchronisation.fsx"
 #r @"..\packages\DotNetZip\lib\net20\Ionic.Zip.dll"
@@ -52,7 +53,6 @@ let createTargetsFor vmSize =
             |> ignore)
 
         targetForVm "Create CS Package" (fun _ -> 
-            // create the cspackage
             PackageRole { CloudService = "MBraceCloudService"; WorkerRole = "MBraceWorkerRole"; SdkVersion = None; OutputPath = Some @"MBraceCloudService\bin\Release\app.publish" }
             |> ignore)
 

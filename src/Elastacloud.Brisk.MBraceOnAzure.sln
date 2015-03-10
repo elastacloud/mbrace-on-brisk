@@ -8,7 +8,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{202FB817-7B32-48DF-BDBD-5A6B4BCCAD78}"
 	ProjectSection(SolutionItems) = preProject
 		Elastacloud.Brisk.Synchronisation.fsx = Elastacloud.Brisk.Synchronisation.fsx
-		Fake.Azure.CloudServices.fsx = Fake.Azure.CloudServices.fsx
 		..\paket.dependencies = ..\paket.dependencies
 		..\paket.lock = ..\paket.lock
 		UpdateMBrace.fsx = UpdateMBrace.fsx
