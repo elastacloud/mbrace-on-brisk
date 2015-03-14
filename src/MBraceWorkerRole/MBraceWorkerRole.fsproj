@@ -81,11 +81,6 @@
           <Private>True</Private>
           <Paket>True</Paket>
         </Reference>
-        <Reference Include="MBrace.Azure.Runtime.Common">
-          <HintPath>..\..\packages\MBrace.Azure\lib\net45\MBrace.Azure.Runtime.Common.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
         <Reference Include="MBrace.Azure.Runtime">
           <HintPath>..\..\packages\MBrace.Azure\lib\net45\MBrace.Azure.Runtime.dll</HintPath>
           <Private>True</Private>

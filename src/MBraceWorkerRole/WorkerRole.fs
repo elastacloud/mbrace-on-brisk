@@ -2,7 +2,6 @@
 
 open MBrace.Azure
 open MBrace.Azure.Runtime
-open MBrace.Azure.Runtime.Common
 open Microsoft.WindowsAzure
 open Microsoft.WindowsAzure.ServiceRuntime
 open System

@@ -75,13 +75,13 @@ Target "Synchronise Depots" (fun _ ->
 
 Target "Commit Label and Push" (fun _ ->
     let newMbraceVersion = (LockFile.LoadFrom "..\paket.lock").ResolvedPackages.[Domain.NormalizedPackageName(Domain.PackageName "Mbrace.Azure")].Version.ToString()
-    Commit sourceFolder <| sprintf "Update MBrace.Azure %s" newMbraceVersion
-    push sourceFolder
+    sourceFolder |> StageAll
+    sourceFolder |> Commit <| sprintf "Update MBrace.Azure %s" newMbraceVersion
+    sourceFolder |> push
     tag sourceFolder newMbraceVersion
     pushTag sourceFolder "origin" newMbraceVersion
 )
 
-"Upgrade MBrace" ==> vmTargets.Head |> ignore
 vmTargets |> List.reduce (==>)
 ==> "Commit Label and Push"
 ==> "Synchronise Depots"
