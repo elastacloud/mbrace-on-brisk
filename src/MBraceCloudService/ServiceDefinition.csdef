@@ -9,5 +9,9 @@
       <LocalStorage name="CustomTempLocalStore" cleanOnRoleRecycle="true" sizeInMB="400000" />
       <LocalStorage name="DiagnosticStore" cleanOnRoleRecycle="false" sizeInMB="20000" />
     </LocalResources>
+    <Endpoints>
+      <InputEndpoint name="DefaultHttpEndpoint" protocol="http" port="80" />
+      <InputEndpoint name="DefaultTcpEndpoint" protocol="tcp" port="10100" />
+    </Endpoints>
   </WorkerRole>
 </ServiceDefinition>
