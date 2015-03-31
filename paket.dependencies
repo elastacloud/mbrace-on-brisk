@@ -1,3 +1,4 @@
+content none
 source https://nuget.org/api/v2
 
 nuget FSharp.Azure.StorageTypeProvider
