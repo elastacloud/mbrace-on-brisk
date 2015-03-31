@@ -1,8 +1,9 @@
 ﻿(* This script updates blob assets in the different Brisk regions *)
 
-#r @"C:\Users\Isaac\Source\Repos\clustermanager-v2\packages\Elastacloud.AzureManagement.Fluent\lib\net45\Elastacloud.AzureManagement.Fluent.dll"
-#r @"..\packages\WindowsAzure.Storage\lib\net40\Microsoft.WindowsAzure.Storage.dll"
-#r @"..\packages\Microsoft.WindowsAzure.ConfigurationManager\lib\net40\Microsoft.WindowsAzure.Configuration.dll"
+#I @"..\packages"
+#r @"Elastacloud.AzureManagement.Fluent\lib\net45\Elastacloud.AzureManagement.Fluent.dll"
+#r @"WindowsAzure.Storage\lib\net40\Microsoft.WindowsAzure.Storage.dll"
+#r @"Microsoft.WindowsAzure.ConfigurationManager\lib\net40\Microsoft.WindowsAzure.Configuration.dll"
 #r "System.Xml.Linq.dll"
 
 namespace Elastacloud.Brisk

@@ -13,7 +13,6 @@ type WorkerRole() =
 
     let getSetting = CloudConfigurationManager.GetSetting
     let setEnv key value = Environment.SetEnvironmentVariable(key, value)
-    let maxId = int UInt16.MaxValue
 
     let svc =
         lazy

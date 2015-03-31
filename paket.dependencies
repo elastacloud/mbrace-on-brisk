@@ -5,3 +5,4 @@ nuget Fake
 nuget MBrace.Azure -pre
 nuget Paket.Core
 nuget DotNetZip
+nuget Elastacloud.AzureManagement.Fluent
