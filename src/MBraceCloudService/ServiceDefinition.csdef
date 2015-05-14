@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ServiceDefinition name="MBraceCloudService" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" schemaVersion="2014-06.2.4">
-  <WorkerRole name="MBraceWorkerRole" vmsize="ExtraLarge">
+  <WorkerRole name="MBraceWorkerRole" vmsize="Medium">
     <ConfigurationSettings>
       <Setting name="StorageConnection" />
       <Setting name="ServiceBusConnection" />
@@ -12,6 +12,7 @@
     <Endpoints>
       <InputEndpoint name="DefaultHttpEndpoint" protocol="http" port="80" />
       <InputEndpoint name="DefaultTcpEndpoint" protocol="tcp" port="10100" />
+      <InputEndpoint name="MBraceStats" protocol="http" port="8083" />
     </Endpoints>
   </WorkerRole>
 </ServiceDefinition>
