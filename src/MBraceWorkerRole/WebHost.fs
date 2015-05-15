@@ -3,12 +3,11 @@
 open MBrace.Azure.Client
 open Newtonsoft.Json
 open Suave.Http
-open Suave.Http
+open Suave.Http.Applicatives
 open Suave.Http.Successful
 open Suave.Http.Writers
 open Suave.Types
 open Suave.Web
-open Suave.Http.Applicatives
 
 type ClusterStats =
     { ActiveJobs : int
@@ -21,10 +20,13 @@ type ClusterStats =
       Nodes : int }
 
 [<AutoOpen>]
-module private WebParts =    
-    let jsonHeader = setHeader "Content-Type" "application/json"
+module private Helpers =
+    let private jsonHeader = setHeader "Content-Type" "application/json"
     let asJson body : WebPart = jsonHeader >>= OK (body |> JsonConvert.SerializeObject)
-    
+    let withCors = setHeader "Access-Control-Allow-Origin" "*"
+
+[<AutoOpen>]
+module private WebParts =
     let getStats (handle:Runtime) =
         let workers = handle.GetWorkers() |> Seq.toList
         match workers with
@@ -43,8 +45,9 @@ module private WebParts =
 
 let private createApp cluster =
     choose
-        [ GET >>= choose
-            [ path "/stats" >>= context(fun _ -> (getStats cluster |> asJson)) ] ]
+        [ OPTIONS >>= OK "OK" >>= withCors
+          GET >>= choose
+            [ path "/stats" >>= context(fun _ -> (getStats cluster |> asJson)) >>= withCors ] ]
 
 let startHosting mbraceConfig (ip, port) =
     let mbraceHandle = Runtime.GetHandle mbraceConfig
