@@ -1,17 +1,17 @@
-﻿#r @"..\packages\Paket.Core\lib\net40\Paket.Core.dll"
+﻿#r @"..\packages\Paket.Core\lib\net45\Paket.Core.dll"
 #r @"..\packages\Fake\tools\FakeLib.dll"
 #load @"..\packages\FSharp.Azure.StorageTypeProvider\StorageTypeProvider.fsx"
 #load "Elastacloud.Brisk.Synchronisation.fsx"
 #r @"..\packages\DotNetZip\lib\net20\Ionic.Zip.dll"
 
-open Paket
+open Elastacloud.Brisk
 open Fake
 open Fake.Azure.CloudServices
 open Fake.Git
+open FSharp.Azure.StorageTypeProvider
+open Paket
 open System
 open System.IO
-open FSharp.Azure.StorageTypeProvider
-open Elastacloud.Brisk
 
 Environment.CurrentDirectory <- __SOURCE_DIRECTORY__
 let packageOutputDir = @"MBraceCloudService\bin\Release\app.publish"
