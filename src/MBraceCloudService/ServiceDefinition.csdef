@@ -1,18 +1,18 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ServiceDefinition name="MBraceCloudService" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" schemaVersion="2015-04.2.6">
-  <WorkerRole name="MBraceWorkerRole" vmsize="Large">
-    <ConfigurationSettings>
-      <Setting name="StorageConnection" />
-      <Setting name="ServiceBusConnection" />
-    </ConfigurationSettings>
-    <LocalResources>
-      <LocalStorage name="CustomTempLocalStore" cleanOnRoleRecycle="true" sizeInMB="400000" />
-      <LocalStorage name="DiagnosticStore" cleanOnRoleRecycle="false" sizeInMB="20000" />
-    </LocalResources>
-    <Endpoints>
-      <InputEndpoint name="DefaultHttpEndpoint" protocol="http" port="80" />
-      <InputEndpoint name="DefaultTcpEndpoint" protocol="tcp" port="10100" />
-      <InputEndpoint name="MBraceStats" protocol="http" port="8083" />
-    </Endpoints>
-  </WorkerRole>
+    <WorkerRole name="MBraceWorkerRole" vmsize="Large">
+        <ConfigurationSettings>
+            <Setting name="StorageConnection" />
+            <Setting name="ServiceBusConnection" />
+        </ConfigurationSettings>
+        <LocalResources>
+            <LocalStorage name="CustomTempLocalStore" cleanOnRoleRecycle="true" sizeInMB="400000" />
+            <LocalStorage name="DiagnosticStore" cleanOnRoleRecycle="false" sizeInMB="20000" />
+        </LocalResources>
+        <Endpoints>
+            <InputEndpoint name="DefaultHttpEndpoint" protocol="http" port="80" />
+            <InputEndpoint name="DefaultTcpEndpoint" protocol="tcp" port="10100" />
+            <InputEndpoint name="MBraceStats" protocol="http" port="8083" />
+        </Endpoints>
+    </WorkerRole>
 </ServiceDefinition>
