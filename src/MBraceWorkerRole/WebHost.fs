@@ -32,8 +32,8 @@ module private WebParts =
         match workers with
         | [] -> { ActiveJobs = 0; CpuAverage = 0.; MemoryInUse = 0.; MemoryAvailable = 0.; MemoryTotal = 0.; NetworkDown = 0.; NetworkUp = 0.; Nodes = 0 }
         | workers ->           
-            let memoryInUse = workers |> Seq.sumBy(fun worker -> (worker.TotalMemory / 100.) * worker.Memory)
             let totalMemory = workers |> Seq.sumBy(fun worker -> worker.TotalMemory)
+            let memoryInUse = workers |> Seq.sumBy(fun worker -> worker.Memory)
             { ActiveJobs = workers |> Seq.sumBy(fun worker -> worker.ActiveJobs)
               CpuAverage = workers |> Seq.averageBy(fun worker -> worker.CPU)
               Nodes = workers.Length
@@ -49,6 +49,7 @@ let private createApp cluster =
           GET >>= choose
             [ path "/stats" >>= context(fun _ -> (getStats cluster |> asJson)) >>= withCors ] ]
 
+/// Starts hosting the MBrace web host for exposing stats.
 let startHosting mbraceConfig (ip, port) =
     let mbraceHandle = Runtime.GetHandle mbraceConfig
     

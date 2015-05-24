@@ -8,3 +8,4 @@ nuget Paket.Core
 nuget DotNetZip
 nuget Elastacloud.AzureManagement.Fluent
 nuget Suave
+nuget Mono.Cecil 0.9.5.4

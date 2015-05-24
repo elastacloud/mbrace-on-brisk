@@ -31,7 +31,7 @@ NUGET
     Microsoft.Data.Services.Client (5.6.4) - framework: >= net40
       Microsoft.Data.OData (5.6.4)
     Microsoft.WindowsAzure.ConfigurationManager (3.1.0) - framework: >= net40
-    Mono.Cecil (0.9.6.1)
+    Mono.Cecil (0.9.5.4)
     Newtonsoft.Json (6.0.8) - framework: wpv8.0, >= net40
     Paket.Core (1.5.2)
       FSharp.Core
