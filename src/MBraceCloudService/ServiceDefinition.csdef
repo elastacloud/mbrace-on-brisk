@@ -6,7 +6,7 @@
       <Setting name="ServiceBusConnection" />
     </ConfigurationSettings>
     <LocalResources>
-      <LocalStorage name="CustomTempLocalStore" cleanOnRoleRecycle="true" sizeInMB="400000" />
+      <LocalStorage name="CustomTempLocalStore" cleanOnRoleRecycle="true" sizeInMB="40000" />
       <LocalStorage name="DiagnosticStore" cleanOnRoleRecycle="false" sizeInMB="20000" />
     </LocalResources>
     <Endpoints>
