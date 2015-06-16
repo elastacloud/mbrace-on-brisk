@@ -35,3 +35,7 @@ type WorkerRole() =
         ServicePointManager.DefaultConnectionLimit <- 512
 
         base.OnStart()
+
+    override __.OnStop() =
+        mbraceSvc.Stop()
+        base.OnStop()
