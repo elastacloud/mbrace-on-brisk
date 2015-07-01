@@ -1,4 +1,5 @@
 content none
+redirects on
 source https://nuget.org/api/v2
 
 nuget FSharp.Azure.StorageTypeProvider
@@ -8,4 +9,5 @@ nuget Paket.Core
 nuget DotNetZip
 nuget Elastacloud.AzureManagement.Fluent
 nuget Suave
-nuget Mono.Cecil 0.9.5.4
+nuget Mono.Cecil
+nuget FsPickler.Json 1.2.7
