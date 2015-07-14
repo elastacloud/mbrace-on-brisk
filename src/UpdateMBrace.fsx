@@ -27,9 +27,9 @@ Target "Upgrade MBrace" (fun _ ->
 
 Target "Run All" DoNothing
 
-let createTargetsFor vmSize =
+let createTargetsFor mbraceVersion vmSize =
     let targetForVm name func =
-        let targetName = (sprintf "%s: %s" vmSize name)
+        let targetName = (sprintf "%s-%s: %s" vmSize mbraceVersion name)
         let t = Target targetName func
         targetName
     [
@@ -58,13 +58,20 @@ let createTargetsFor vmSize =
 
         targetForVm "Upload to Azure" (fun _ -> 
             let file = Path.Combine(packageOutputDir, "MBraceCloudService.cspkg")
-            let destination = Path.Combine(packageOutputDir, sprintf "mbrace-%s.cspkg" (vmSize.ToLower()))
+            let destination = Path.Combine(packageOutputDir, sprintf "mbrace-%s-%s.cspkg" mbraceVersion (vmSize.ToLower()))
             DeleteFile destination
             file |> Rename destination
             EUNorthStorage.Containers.cspackages.Upload destination |> Async.RunSynchronously)
     ]
 
-let vmTargets = [ "Medium"; "Large"; "ExtraLarge" ] |> List.collect createTargetsFor
+let mbraceVersion = 
+    Paket.LockFile
+         .LoadFrom("..\paket.lock")
+         .ResolvedPackages
+         .[Domain.NormalizedPackageName (Domain.PackageName "MBrace.Azure")]
+         .Version
+
+let vmTargets = [ "Medium"; "Large"; "ExtraLarge" ] |> List.collect (createTargetsFor mbraceVersion.AsString)
 
 Target "Synchronise Depots" (fun _ ->
     Synchronisation.SyncAllDepots(Synchronisation.BizsparkCert, Synchronisation.SourceDepot, Synchronisation.TargetDepots)
@@ -83,7 +90,7 @@ Target "Commit Label and Push" (fun _ ->
 )
 
 vmTargets |> List.reduce (==>)
-==> "Commit Label and Push"
+//==> "Commit Label and Push"
 ==> "Synchronise Depots"
 ==> "Run All"
 

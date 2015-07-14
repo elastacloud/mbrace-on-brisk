@@ -2,7 +2,7 @@ content none
 redirects on
 source https://nuget.org/api/v2
 
-nuget FSharp.Azure.StorageTypeProvider
+nuget FSharp.Azure.StorageTypeProvider 
 nuget Fake
 nuget MBrace.Azure -pre
 nuget Paket.Core

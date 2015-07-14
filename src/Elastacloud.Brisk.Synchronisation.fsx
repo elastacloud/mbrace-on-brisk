@@ -131,7 +131,7 @@ module Synchronisation =
 
     let BizsparkCert = 
         { SubscriptionId = Guid "84bf11d2-7751-4ce7-b22d-ac44bf33cbe9"
-          Path = "D:\Downloads\BizSpark Plus-7-9-2014-credentials.publishsettings" }
+          Path = "C:\Users\Isaac\Downloads\BizSpark Plus-7-8-2014-credentials.publishsettings" }
 
     //#time
     //let results =
