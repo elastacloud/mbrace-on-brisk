@@ -7,10 +7,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MBraceWorkerRole", "MBraceW
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{202FB817-7B32-48DF-BDBD-5A6B4BCCAD78}"
 	ProjectSection(SolutionItems) = preProject
-		Elastacloud.Brisk.Synchronisation.fsx = Elastacloud.Brisk.Synchronisation.fsx
-		..\paket.dependencies = ..\paket.dependencies
-		..\paket.lock = ..\paket.lock
-		UpdateMBrace.fsx = UpdateMBrace.fsx
+		paket.dependencies = paket.dependencies
+		paket.lock = paket.lock
 	EndProjectSection
 EndProject
 Project("{CC5FD16D-436D-48AD-A40C-5A424C6E3E79}") = "MBraceCloudService", "MBraceCloudService\MBraceCloudService.ccproj", "{DB729494-7CE4-4C14-A5EE-56077626C40B}"

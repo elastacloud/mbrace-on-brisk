@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ServiceConfiguration serviceName="MBraceCloudService" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceConfiguration" osFamily="4" osVersion="*" schemaVersion="2015-04.2.6">
+  <Role name="MBraceWorkerRole">
+    <Instances count="4" />
+    <ConfigurationSettings>
+      <Setting name="StorageConnection" value="DefaultEndpointsProtocol=https;AccountName=neelasta84bf11d277514ce7;AccountKey=dSNRBto7YqOavyR3xmIFGPZS7osQWeiUM2C+XoKHabQfqyPNuCyjw4DO7W3A8aFRZOYKtfR2BZ1LgH5A7+J4lA==" />
+      <Setting name="ServiceBusConnection" value="Endpoint=sb://brisk-ne184bf11d2.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=Q2SZwsq3cBjXK13f9Je2vNEsJXrHjLP4NJhlnbGNEoY=" />
+    </ConfigurationSettings>
+  </Role>
+</ServiceConfiguration>
