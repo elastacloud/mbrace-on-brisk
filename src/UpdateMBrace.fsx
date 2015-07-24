@@ -39,7 +39,7 @@ let mbraceVersion =
 
 let createTargetsFor (fscVersion, vmSize) =
     let targetForVm name func =
-        let targetName = (sprintf "%O/%s/%A: %s" mbraceVersion vmSize fscVersion name)
+        let targetName = (sprintf "%O/%A/%s: %s" mbraceVersion fscVersion vmSize name)
         Target targetName func |> ignore
         targetName
     let fscNuget = match fscVersion with | FSC_31 -> "3.1.2.5" | FSC_40 -> "4.0.0.1"
