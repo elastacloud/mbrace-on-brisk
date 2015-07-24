@@ -1,7 +1,7 @@
 content none
 source https://nuget.org/api/v2
 
-nuget FSharp.Azure.StorageTypeProvider
+nuget FSharp.Azure.StorageTypeProvider 
 nuget Fake
 nuget Paket.Core
 nuget Elastacloud.AzureManagement.Fluent

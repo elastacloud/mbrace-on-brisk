@@ -63,11 +63,18 @@ let createTargetsFor vmSize fscVersion =
 
       targetForVm "Upload to Azure" (fun _ -> 
           let file = Path.Combine(packageOutputDir, "MBraceCloudService.cspkg")
-          let destination = Path.Combine(packageOutputDir, sprintf "mbrace-%s.cspkg" (vmSize.ToLower()))
+          let destination = Path.Combine(packageOutputDir, sprintf "%s.cspkg" (vmSize.ToLower()))
           DeleteFile destination
           file |> Rename destination
           EUNorthStorage.Containers.cspackages.Upload destination |> Async.RunSynchronously)
     ]
+
+let mbraceVersion = 
+    Paket.LockFile
+         .LoadFrom("..\paket.lock")
+         .ResolvedPackages
+         .[Domain.NormalizedPackageName (Domain.PackageName "MBrace.Azure")]
+         .Version
 
 let vmTargets =
     [ "Medium"; "Large"; "ExtraLarge" ]
@@ -91,7 +98,7 @@ Target "Commit Label and Push" (fun _ ->
 )
 
 vmTargets |> List.reduce (==>)
-==> "Commit Label and Push"
+//==> "Commit Label and Push"
 ==> "Synchronise Depots"
 ==> "Run All"
 
