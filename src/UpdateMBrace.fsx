@@ -17,8 +17,9 @@ Environment.CurrentDirectory <- __SOURCE_DIRECTORY__
 let packageOutputDir = @"Deployment\MBraceCloudService\bin\Release\app.publish"
 let sourceFolder = (DirectoryInfo __SOURCE_DIRECTORY__).Parent.FullName
 type EUNorthStorage = AzureTypeProvider<"briskdepoteun", "dPwxkxWGJzaWrxKLRUYOuNqoWHTUf0Xc3KzSSXew9ojTUuiIW+s/owwv0FRBNeGp+i69XL9W5hKsuyuL9TKYiQ==">
+type FscVersion = | FSC_31 | FSC_40
 
-let updatePackage name version = UpdateProcess.UpdatePackage("Deployment\paket.dependencies", Domain.PackageName name, version, UpdaterOptions.Default)
+let updatePackage name version = UpdateProcess.UpdatePackage("Deployment\paket.dependencies", Domain.PackageName name, version, { UpdaterOptions.Default with Common = { UpdaterOptions.Default.Common with Redirects = true } })
 
 Target "Upgrade MBrace" (fun _ ->
     sourceFolder |> Git.Reset.ResetHard
@@ -29,57 +30,61 @@ Target "Upgrade MBrace" (fun _ ->
 
 Target "Run All" DoNothing
 
-type FscVersion = | FSC_31 | FSC_40
-
-let createTargetsFor vmSize fscVersion =
-    let targetForVm name func =
-        let targetName = (sprintf "%s-%A: %s" vmSize fscVersion name)
-        let t = Target targetName func
-        targetName
-    let fscVersion = match fscVersion with | FSC_31 -> "3.1.2.5" | FSC_40 -> "4.0.0.1"
-    [ targetForVm (sprintf "Set FSharp Core to %s" fscVersion) (fun _ -> updatePackage "FSharp.Core" (Some fscVersion))
-      targetForVm "Modify config" (fun _ -> 
-          let csdefPath = @"Deployment\MBraceCloudService\ServiceDefinition.csdef"
-          csdefPath
-          |> File.ReadAllText 
-          |> XMLHelper.XMLDoc
-          |> XMLHelper.XPathReplaceNS
-              "/svchost:ServiceDefinition/svchost:WorkerRole/@vmsize"
-              vmSize
-              [ "svchost", "http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" ]
-          |> fun doc -> doc.Save csdefPath
-      )
-
-      targetForVm "Clean" (fun _ -> CleanDirs [ @"MBraceWorkerRole\bin"; @"MBraceCloudService\bin" ])
-
-      targetForVm "Rebuild" (fun _ -> 
-          !!("Deployment\Elastacloud.Brisk.MBraceOnAzure.sln")
-          |> MSBuildRelease "" "Rebuild"
-          |> ignore)
-
-      targetForVm "Create CS Package" (fun _ -> 
-          PackageRole { CloudService = "MBraceCloudService"; WorkerRole = "MBraceWorkerRole"; SdkVersion = None; OutputPath = Some @"Deployment\MBraceCloudService\bin\Release\app.publish" }
-          |> ignore)
-
-      targetForVm "Upload to Azure" (fun _ -> 
-          let file = Path.Combine(packageOutputDir, "MBraceCloudService.cspkg")
-          let destination = Path.Combine(packageOutputDir, sprintf "%s.cspkg" (vmSize.ToLower()))
-          DeleteFile destination
-          file |> Rename destination
-          EUNorthStorage.Containers.cspackages.Upload destination |> Async.RunSynchronously)
-    ]
-
 let mbraceVersion = 
     Paket.LockFile
-         .LoadFrom("..\paket.lock")
+         .LoadFrom("deployment/paket.lock")
          .ResolvedPackages
          .[Domain.NormalizedPackageName (Domain.PackageName "MBrace.Azure")]
          .Version
 
+let createTargetsFor (fscVersion, vmSize) =
+    let targetForVm name func =
+        let targetName = (sprintf "%O/%s/%A: %s" mbraceVersion vmSize fscVersion name)
+        Target targetName func |> ignore
+        targetName
+    let fscNuget = match fscVersion with | FSC_31 -> "3.1.2.5" | FSC_40 -> "4.0.0.1"
+    [   targetForVm (sprintf "Set FSharp Core to %s" fscNuget) (fun _ ->
+            printf "Updating FSharp.Core nuget to %s..." fscNuget
+            updatePackage "FSharp.Core" (Some fscNuget)
+            printfn "Done!")
+        targetForVm "Modify config" (fun _ -> 
+            let csdefPath = @"Deployment\MBraceCloudService\ServiceDefinition.csdef"
+            csdefPath
+            |> File.ReadAllText 
+            |> XMLHelper.XMLDoc
+            |> XMLHelper.XPathReplaceNS
+                "/svchost:ServiceDefinition/svchost:WorkerRole/@vmsize"
+                vmSize
+                [ "svchost", "http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" ]
+            |> fun doc -> doc.Save csdefPath)
+    
+        targetForVm "Clean" (fun _ -> CleanDirs [ @"Deployment\MBraceWorkerRole\bin"; @"Deployment\MBraceCloudService\bin" ])
+    
+        targetForVm "Rebuild" (fun _ -> 
+              !!("Deployment\Elastacloud.Brisk.MBraceOnAzure.sln")
+              |> MSBuildRelease "" "Rebuild"
+              |> ignore)
+    
+        targetForVm "Create CS Package" (fun _ -> 
+            Environment.CurrentDirectory <- __SOURCE_DIRECTORY__ + "/Deployment"
+            PackageRole { CloudService = "MBraceCloudService"; WorkerRole = "MBraceWorkerRole"; SdkVersion = None; OutputPath = Some @"MBraceCloudService\bin\Release\app.publish" } |> ignore
+            Environment.CurrentDirectory <- __SOURCE_DIRECTORY__)
+    
+        targetForVm "Upload to Azure" (fun _ -> 
+            let file = Path.Combine(packageOutputDir, "MBraceCloudService.cspkg")
+            let destination = Path.Combine(packageOutputDir, sprintf "%s.cspkg" (vmSize.ToLower()))
+            DeleteFile destination
+            file |> Rename destination
+            EUNorthStorage.Containers.cspackages
+                .AsCloudBlobContainer()
+                .GetBlockBlobReference(sprintf "mbrace/%O/%A/%s" mbraceVersion fscVersion (Path.GetFileName destination))
+                .UploadFromFile(destination, FileMode.Open))
+    ]
+
 let vmTargets =
-    [ "Medium"; "Large"; "ExtraLarge" ]
-    |> List.collect(fun vmSize -> [ FSC_31; FSC_40 ] |> List.map(fun fscV -> fscV, vmSize))
-    |> List.collect(fun (fscVersion, vmSize) -> createTargetsFor vmSize fscVersion)
+    [ FSC_31; FSC_40 ]
+    |> List.collect(fun fscVersion -> [ "Medium"; "Large"; "ExtraLarge" ] |> List.map(fun vmSize -> fscVersion, vmSize))
+    |> List.collect createTargetsFor
 
 Target "Synchronise Depots" (fun _ ->
     Synchronisation.SyncAllDepots(Synchronisation.BizsparkCert, Synchronisation.SourceDepot, Synchronisation.TargetDepots)
